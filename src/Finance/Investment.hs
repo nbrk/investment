@@ -1,14 +1,24 @@
--- | Investment monad
-
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+-- | The Investment monad.
 module Finance.Investment where
 
 import Data.Time.Clock
 import Data.Time.Calendar
 import Data.Time.Format
 import Control.Monad.State
+import Data.Monoid
+import Data.Group
 
 
-class (Eq a, Num a, Show a) => Funds a
+-- | Types that can be considered as Funds are algebraic groups
+class (Eq a, Show a, Ord a, Group a) => Funds a
+
+-- | Synonym when the underlying funds are usual Double (monoid under addition)
+type FundsDouble = Sum Double
+
+instance Funds FundsDouble
+
 
 -- | Investment state
 data InvestmentState a = InvestmentState
@@ -24,15 +34,7 @@ data InvestmentState a = InvestmentState
   -- ^ Current date
   , logBook :: [String]
   -- ^ Log of funds movements, etc.
-  }
-
-{-
-instance Show InvestmentState where
-  show (InvestmentState i o b st ct) = "InvestmentState {inputSum = " ++ s i ++ ", " ++
-    "outputSum = " ++ s o ++ ", bufferSum = " ++ s b ++ ", startDate = " ++ s st ++ ", currentTime = " ++ s ct ++ "}"
-    where
-      s e = show e
--}
+  } deriving (Show)
 
 -- | The investment monad type
 type Investment a r = StateT (InvestmentState a) IO r
@@ -54,11 +56,11 @@ balanceChange f = do
 
 -- | Increase balance value
 balancePlus :: Funds a => a -> Investment a ()
-balancePlus p = balanceChange ( + p)
+balancePlus p = balanceChange ((<>)  p)
 
 -- | Decrease balance value
 balanceMinus :: Funds a => a -> Investment a ()
-balanceMinus m = balanceChange (\b -> b - m)
+balanceMinus m = balanceChange ((<>) (invert m))
 
 -- | Convenience balance no-op
 balanceSame :: Investment a ()
@@ -112,24 +114,24 @@ withdraw x = do
   bsum <- gets balanceSum
   osum <- gets outputSum
   -- XXX use signum over typeclass Num
-  let si = signum (bsum - x)
-  if si == 0 || si == 1
+  let si = (bsum <> invert x) >= mempty x
+  if si == True
     then do
-      let bsum' = bsum - x
-      let osum' = osum + x
+      let bsum' = bsum <> invert x
+      let osum' = osum <> x
       _ <- modify (\ist -> ist {balanceSum = bsum', outputSum = osum'})
       -- make a record in the log book
       writeLog $ "Withdraw of " ++ show x
       return True
     else do
-      writeLog $ "FAILED withdraw of " ++ show x
+      writeLog $ "FAILED withdrawal of " ++ show x
       return False
 
 -- | Deposit funds (increase 'inputSum' indicating that even more money has been invested)
 deposit :: Funds a => a -> Investment a ()
 deposit x = do
   isum <- gets inputSum
-  modify (\ist -> ist {inputSum = isum + x})
+  modify (\ist -> ist {inputSum = isum <> x})
   writeLog $ "Deposit of " ++ show x
 
 

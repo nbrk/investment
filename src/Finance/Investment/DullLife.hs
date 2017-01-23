@@ -5,15 +5,16 @@ module Finance.Investment.DullLife where
 import Finance.Investment
 import Data.Time.Clock
 import Control.Monad.Trans
+import Data.Monoid
 
-instance Funds Double
 
-ist :: UTCTime -> InvestmentState Double
+
+ist :: UTCTime -> InvestmentState FundsDouble
 ist t = makeInvestmentState 0 0 0 t
 
 
 -- salary, each month, 23rd
-salary :: Investment Double ()
+salary :: Investment FundsDouble ()
 salary = do
   dn <- getMonthDay
   t <- getTime
@@ -28,7 +29,7 @@ salary = do
     else balanceSame
 
 
-birthday :: Investment Double ()
+birthday :: Investment FundsDouble ()
 birthday = do
   d <- getDayAndMonth
   t <- getTime
@@ -39,7 +40,7 @@ birthday = do
     else balanceSame
 
 
-bars :: Investment Double ()
+bars :: Investment FundsDouble ()
 bars = do
   d <- getToday
   t <- getTime
@@ -49,7 +50,7 @@ bars = do
     else balanceSame
 
 -- spend 1000 on food every odd day at 8 p.m.
-supermarkets :: Investment Double ()
+supermarkets :: Investment FundsDouble ()
 supermarkets = do
   d <- getMonthDay
   t <- getTime
@@ -57,7 +58,7 @@ supermarkets = do
     then balanceMinus 1000
     else balanceSame
 
-rent :: Investment Double ()
+rent :: Investment FundsDouble ()
 rent = do
   d <- getMonthDay
   t <- getTime
@@ -68,7 +69,7 @@ rent = do
     else balanceSame
 
 
-dullLife :: Investment Double ()
+dullLife :: Investment FundsDouble ()
 dullLife = do
   salary
   supermarkets

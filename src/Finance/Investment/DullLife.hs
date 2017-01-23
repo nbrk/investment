@@ -46,7 +46,7 @@ bars = do
   t <- getTime
   if d == "Friday" && t == "21:00"
     then do
-      balanceMinus 2000
+      balanceMinus 3000
     else balanceSame
 
 -- spend 1000 on food every odd day at 8 p.m.
@@ -55,7 +55,7 @@ supermarkets = do
   d <- getMonthDay
   t <- getTime
   if odd d && t == "20:00"
-    then balanceMinus 1000
+    then balanceMinus 1500
     else balanceSame
 
 rent :: Investment FundsDouble ()

@@ -20,8 +20,6 @@ salary = do
   t <- getTime
   if dn == 23 && t == "18:00"
     then do
-      m <- getMonth
-      b <- getBalance
       balancePlus 36000
       balancePlus 18000
       balancePlus 18000
@@ -45,8 +43,7 @@ bars = do
   d <- getToday
   t <- getTime
   if d == "Friday" && t == "21:00"
-    then do
-      balanceMinus 3000
+    then balanceMinus 3000
     else balanceSame
 
 -- spend 1000 on food every odd day at 8 p.m.

@@ -9,12 +9,12 @@ import Data.Monoid
 
 
 
-ist :: UTCTime -> InvestmentState FundsDouble
+ist :: UTCTime -> InvestmentState Double
 ist t = makeInvestmentState 0 0 0 t
 
 
 -- salary, each month, 23rd
-salary :: Investment FundsDouble ()
+salary :: Investment Double ()
 salary = do
   dn <- getMonthDay
   t <- getTime
@@ -29,7 +29,7 @@ salary = do
     else balanceSame
 
 
-birthday :: Investment FundsDouble ()
+birthday :: Investment Double ()
 birthday = do
   d <- getDayAndMonth
   t <- getTime
@@ -40,7 +40,7 @@ birthday = do
     else balanceSame
 
 
-bars :: Investment FundsDouble ()
+bars :: Investment Double ()
 bars = do
   d <- getToday
   t <- getTime
@@ -50,7 +50,7 @@ bars = do
     else balanceSame
 
 -- spend 1000 on food every odd day at 8 p.m.
-supermarkets :: Investment FundsDouble ()
+supermarkets :: Investment Double ()
 supermarkets = do
   d <- getMonthDay
   t <- getTime
@@ -58,7 +58,7 @@ supermarkets = do
     then balanceMinus 1500
     else balanceSame
 
-rent :: Investment FundsDouble ()
+rent :: Investment Double ()
 rent = do
   d <- getMonthDay
   t <- getTime
@@ -69,7 +69,7 @@ rent = do
     else balanceSame
 
 
-dullLife :: Investment FundsDouble ()
+dullLife :: Investment Double ()
 dullLife = do
   salary
   supermarkets

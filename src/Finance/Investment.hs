@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 -- | The Investment monad.
 module Finance.Investment where
 
@@ -7,17 +5,12 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import Data.Time.Format
 import Control.Monad.State
-import Data.Monoid
-import Data.Group
 
 
--- | Types that can be considered as Funds are algebraic groups
-class (Eq a, Show a, Ord a, Group a) => Funds a
+-- | Types that can be treated as Funds
+class (Eq a, Show a, Ord a, Fractional a) => Funds a
 
--- | Synonym when the underlying funds are usual Double (monoid under addition)
-type FundsDouble = Sum Double
-
-instance Funds FundsDouble
+instance Funds Double
 
 
 -- | Investment state
@@ -56,11 +49,11 @@ balanceChange f = do
 
 -- | Increase balance value
 balancePlus :: Funds a => a -> Investment a ()
-balancePlus p = balanceChange ((<>)  p)
+balancePlus p = balanceChange (+  p)
 
 -- | Decrease balance value
 balanceMinus :: Funds a => a -> Investment a ()
-balanceMinus m = balanceChange ((<>) (invert m))
+balanceMinus m = balanceChange (+ (- m))
 
 -- | Convenience balance no-op
 balanceSame :: Investment a ()
@@ -114,11 +107,11 @@ withdraw x = do
   bsum <- gets balanceSum
   osum <- gets outputSum
   -- XXX use signum over typeclass Num
-  let si = (bsum <> invert x) >= mempty x
-  if si == True
+  let bok = (bsum - x) >= 0
+  if bok == True
     then do
-      let bsum' = bsum <> invert x
-      let osum' = osum <> x
+      let bsum' = bsum - x
+      let osum' = osum + x
       _ <- modify (\ist -> ist {balanceSum = bsum', outputSum = osum'})
       -- make a record in the log book
       writeLog $ "Withdraw of " ++ show x
@@ -131,7 +124,7 @@ withdraw x = do
 deposit :: Funds a => a -> Investment a ()
 deposit x = do
   isum <- gets inputSum
-  modify (\ist -> ist {inputSum = isum <> x})
+  modify (\ist -> ist {inputSum = isum + x})
   writeLog $ "Deposit of " ++ show x
 
 
